@@ -1,0 +1,3 @@
+{
+  "ignorePatterns": ["**/*.jinja", "**/*.j2", "**/templates/*.html"]
+}
