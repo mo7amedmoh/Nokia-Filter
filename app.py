@@ -33,7 +33,7 @@ def index():
             excel_path=excel_path
         )
 
-    return render_template("index.html")
+    return render_template("Index.html")
 
 @app.route("/download")
 def download():
