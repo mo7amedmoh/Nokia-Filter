@@ -14,7 +14,7 @@ def build_summary(filepath):
         "", "Weather Issue", "Access Requested", "Access Blocked",
         "On way to site", "Working in site", "Spare parts required",
         "Spare Shortage", "Power Issue", "Cleared", "Access Tower H&S",
-        "H&S case", "HDSL", "Planned Action", "Cascaded", "Shared PM Issue "
+        "H&S case", "HDSL", "Planned Action", "Cascaded", "Shared PM Issue ","Theft and sabotage","Owner PM Issue"
     ]
 
     def escape_but_allow_br(text):
