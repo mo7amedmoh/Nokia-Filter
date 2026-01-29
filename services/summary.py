@@ -123,7 +123,7 @@ def build_summary(filepath, selected_oz=None):
                     "Site Name": row["Site Name"],
                     "SC Office": row["SC Office"],
                     "ENV Alarm": " | >".join(critical_env),
-                    "ENV Alarm Time": env_info[site_code]["time"].strftime("%Y-%m-%d %H:%M:%S")
+                    "ENV Alarm Time": ""
                 })
 
 
