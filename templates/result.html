@@ -267,7 +267,18 @@
               {% for key,val in row.items() %}
               {% if not key.startswith("_") %}
               <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Comment" %}
+                {% if key=="Site Name" %}
+                {{ val }}
+                <br>
+                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
+                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
+                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
+                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
+                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
+                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
+                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
+                endif %}
+                {% elif key=="Comment" %}
                 <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
                   {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
                 </select>
@@ -310,7 +321,18 @@
               {% for key,val in row.items() %}
               {% if not key.startswith("_") %}
               <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Comment" %}
+                {% if key=="Site Name" %}
+                {{ val }}
+                <br>
+                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
+                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
+                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
+                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
+                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
+                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
+                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
+                endif %}
+                {% elif key=="Comment" %}
                 <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
                   {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
                 </select>
@@ -354,7 +376,18 @@
               {% for key,val in row.items() %}
               {% if not key.startswith("_") %}
               <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Comment" %}
+                {% if key=="Site Name" %}
+                {{ val }}
+                <br>
+                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
+                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
+                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
+                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
+                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
+                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
+                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
+                endif %}
+                {% elif key=="Comment" %}
                 <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
                   {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
                 </select>

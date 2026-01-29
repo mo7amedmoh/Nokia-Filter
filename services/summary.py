@@ -45,7 +45,15 @@ def build_summary(filepath, selected_oz):
             "Comment": comments_list.copy(),
             "Duration": "",
             "_down_time": pd.Timestamp.max,
-            "_env_time": pd.Timestamp.max
+            "_env_time": pd.Timestamp.max,
+            # ================= Badges =================
+            "VIP": master.get("VIP", ""),
+            "CEO": master.get("CEO", ""),
+            "Router": master.get("Router", ""),
+            "BDT": master.get("BDT", ""),
+            "Nodal": master.get("Nodal", ""),
+            "Power": master.get("Power", ""),
+            "Site Type Badge": master.get("Site Type Badge", "")
         }
 
         # ================= DOWN LOGIC =================
@@ -123,7 +131,15 @@ def build_summary(filepath, selected_oz):
                     "Site Name": row["Site Name"],
                     "SC Office": row["SC Office"],
                     "ENV Alarm": "<br>".join(critical_env),
-                    "Site Type": site_type
+                    "Site Type": site_type,
+                    # ================= Badges =================
+                    "VIP": master.get("VIP", ""),
+                    "CEO": master.get("CEO", ""),
+                    "Router": master.get("Router", ""),
+                    "BDT": master.get("BDT", ""),
+                    "Nodal": master.get("Nodal", ""),
+                    "Power": master.get("Power", ""),
+                    "Site Type Badge": master.get("Site Type Badge", "")
                 })
 
         rows.append(row)
