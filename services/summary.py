@@ -99,33 +99,36 @@ def build_summary(filepath, selected_oz=None):
 
         
         # ENV
-        if site_code in env_info:
-            site_type = master.get("Site Type","").upper()
+        
+    if site_code in env_info:
+        site_type = master.get("Site Type","").upper()
+        site_env = env_info[site_code]
 
-            env_alarms = []
-            critical_env = []
+        # ===== ENV Alarms =====
+        env_alarms = [escape_but_allow_br(a) for a in site_env.get("alarms",[])]
+        row["ENV Alarms"] = " | ".join(env_alarms)
 
-            for alarm in env_info[site_code]["alarms"]:
-                clean_alarm = alarm.upper().strip()
-                env_alarms.append(escape_but_allow_br(alarm))
+        # ===== ENV Times =====
+        env_times = pd.to_datetime(site_env.get("times", []), errors="coerce").dropna()
+        if len(env_times) > 0:
+            row["ENV Alarm Time"] = env_times.max().strftime("%Y-%m-%d %H:%M:%S")
+            row["_env_time"] = env_times.max()
 
-                if (
-                    clean_alarm in critical_env_alarms
-                    and site_type not in ["MICRO", "PICO", "NANO"]
-                ):
-                    critical_env.append(escape_but_allow_br(alarm))
+        # ===== Critical ENV =====
+        critical_env = []
+        for alarm in site_env.get("alarms", []):
+            clean_alarm = alarm.upper().strip()
+            if clean_alarm in critical_env_alarms and site_type not in ["MICRO", "PICO", "NANO"]:
+                critical_env.append(escape_but_allow_br(alarm))
 
-            row["ENV Alarms"] = " | ".join(env_alarms)
-
-            if critical_env:
-                critical_env_table.append({
-                    "Site Code": site_code,
-                    "Site Name": row["Site Name"],
-                    "SC Office": row["SC Office"],
-                    "ENV Alarm": " | >".join(critical_env),
-                    "ENV Alarm Time": ""
-                })
-
+        if critical_env:
+            critical_env_table.append({
+                "Site Code": site_code,
+                "Site Name": row["Site Name"],
+                "SC Office": row["SC Office"],
+                "ENV Alarm": " | >".join(critical_env),
+                "ENV Alarm Time": row["ENV Alarm Time"]
+            })
 
 
         rows.append(row)
