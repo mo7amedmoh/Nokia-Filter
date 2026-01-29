@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import html
 
-def build_summary(filepath):
+def build_summary(filepath, selected_oz=None):
     down_info = build_down_dict(filepath)
     env_info = build_env_dict(filepath)
 
@@ -25,6 +25,10 @@ def build_summary(filepath):
 
     for site_code in valid_sites:
         master = site_master_dict.get(site_code, {})
+        if selected_oz:
+            oz = str(master.get("OZ","")).strip()
+            if oz != selected_oz:
+                continue
         row = {
             "Site Code": site_code,
             "Site Name": master.get("Site Name",""),
