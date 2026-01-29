@@ -30,6 +30,14 @@ down_alarm_names = set(alarm_category_dict.keys())
 alarm_rename_df = pd.read_excel(os.path.join(BASE_DIR, "../alarm_rename.xlsx"), engine="openpyxl")
 alarm_rename_dict = dict(zip(alarm_rename_df["Alarm Text"].apply(clean_text),
                              alarm_rename_df["Renamed Alarm"].astype(str).str.strip()))
+# ===== Load ENV Criticality =====
+alarm_rename_df["Alarm crtiticality"] = alarm_rename_df["Alarm crtiticality"].astype(str).str.upper().str.strip()
+
+critical_env_alarms = set(
+    alarm_rename_df[
+        alarm_rename_df["Alarm crtiticality"] == "CRITICAL"
+    ]["Alarm Text"].apply(clean_text)
+)
 
 # ===== Load HW-Rename (for Down alarms) =====
 hw_rename_df = pd.read_excel(os.path.join(BASE_DIR, "../HW-Rename.xlsx"), engine="openpyxl")
@@ -38,7 +46,7 @@ hw_rename_dict = dict(zip(hw_rename_df["Supplementary Information"].apply(clean_
 
 # ===== Regex & Tech Map =====
 import re
-SITE_CODE_REGEX = re.compile(r'(\d{4}(?:AL|DE))')
+SITE_CODE_REGEX = re.compile(r'(\d{4}(?:AL|DE|SI))')
 TECH_MAP = {"2G_Down":"2G","3G_Down":"3G","4G_Down":"4G","5G_Down":"5G"}
 
 # ===== Filter last 40 days =====
@@ -58,3 +66,20 @@ def extract_site_code(row):
         if match:
             return match.group(1)
     return None
+
+
+# ===== OZ List =====
+oz_list = sorted(
+    site_master["OZ"]
+    .dropna()
+    .astype(str)
+    .str.strip()
+    .unique()
+)
+
+__all__ = [
+    "site_master_dict",
+    "valid_sites",
+    "critical_env_alarms",
+    "oz_list"
+]
