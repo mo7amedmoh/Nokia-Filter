@@ -86,8 +86,7 @@
     }
 
     #downTable th,
-    #envTable th,
-    #crenvTable th {
+    #envTable th {
       background-color: #212529;
       color: #fff;
       text-align: center;
@@ -119,8 +118,7 @@
     }
 
     body.dark-mode #downTable td,
-    body.dark-mode #envTable td,
-    body.dark-mode #crenvTable td {
+    body.dark-mode #envTable td {
       background-color: #1e1e1e;
       color: #eaeaea;
     }
@@ -231,14 +229,9 @@
 
     <!-- Tabs -->
     <ul class="nav nav-tabs mb-3">
-      <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#downTab">Down Alarms</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#envTab">ENV Alarms</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#crenvTab">Critical ENV</button>
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#downTab">Down
+          Alarms</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#envTab">ENV Alarms</button>
       </li>
     </ul>
 
@@ -267,18 +260,7 @@
               {% for key,val in row.items() %}
               {% if not key.startswith("_") %}
               <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Site Name" %}
-                {{ val }}
-                <br>
-                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
-                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
-                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
-                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
-                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
-                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
-                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
-                endif %}
-                {% elif key=="Comment" %}
+                {% if key=="Comment" %}
                 <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
                   {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
                 </select>
@@ -321,18 +303,7 @@
               {% for key,val in row.items() %}
               {% if not key.startswith("_") %}
               <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Site Name" %}
-                {{ val }}
-                <br>
-                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
-                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
-                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
-                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
-                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
-                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
-                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
-                endif %}
-                {% elif key=="Comment" %}
+                {% if key=="Comment" %}
                 <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
                   {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
                 </select>
@@ -348,61 +319,6 @@
         </table>
         {% else %}
         <div class="alert alert-info">No ENV Alarms Available</div>
-        {% endif %}
-      </div>
-
-      <!-- CRITICAL ENV TAB -->
-      <div class="tab-pane fade" id="crenvTab">
-        {% if critical_env_table|length > 0 %}
-        <div class="row mb-2">
-          <div class="col-md-4">
-            <input type="text" id="crenvSearch" class="form-control form-control-sm"
-              placeholder="Search CRITICAL Alarms...">
-          </div>
-        </div>
-        <table id="crenvTable" class="table table-striped table-bordered">
-          <thead>
-            <tr>
-              {% for key in critical_env_table[0].keys() %}
-              {% if not key.startswith("_") %}
-              <th {% if key=="Comment" %}class="comment" {% endif %}>{{ key }}</th>
-              {% endif %}
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in critical_env_table %}
-            <tr>
-              {% for key,val in row.items() %}
-              {% if not key.startswith("_") %}
-              <td {% if key=="Comment" %}class="comment" {% endif %}>
-                {% if key=="Site Name" %}
-                {{ val }}
-                <br>
-                {% if row.get("VIP") %}<span class="badge badge-vip">{{ row.VIP }}</span>{% endif %}
-                {% if row.get("CEO") %}<span class="badge badge-ceo">{{ row.CEO }}</span>{% endif %}
-                {% if row.get("Router") %}<span class="badge badge-router">{{ row.Router }}</span>{% endif %}
-                {% if row.get("BDT") %}<span class="badge badge-bdt">{{ row.BDT }}</span>{% endif %}
-                {% if row.get("Nodal") %}<span class="badge badge-nodal">{{ row.Nodal }}</span>{% endif %}
-                {% if row.get("Power") %}<span class="badge badge-power">{{ row.Power }}</span>{% endif %}
-                {% if row.get("Site Type Badge") %}<span class="badge badge-site">{{ row["Site Type Badge"] }}</span>{%
-                endif %}
-                {% elif key=="Comment" %}
-                <select class="form-select form-select-sm" title="{{ val|join(', ') }}">
-                  {% for option in val %}<option>{{ option|e }}</option>{% endfor %}
-                </select>
-                {% else %}
-                {{ val|safe }}
-                {% endif %}
-              </td>
-              {% endif %}
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <div class="alert alert-info">No Critical ENV Alarms Available</div>
         {% endif %}
       </div>
     </div>
@@ -450,19 +366,24 @@
           buttons: ['excel', 'csv', 'print']
         });
         $('#envSearch').on('keyup', function () { envTable.search(this.value).draw(); });
-      }
 
-      // CRITICAL ENV TABLE
-      if ($('#crenvTable').length) {
-        var crenvTable = $('#crenvTable').DataTable({
-          pageLength: 25,
-          ordering: false,
-          lengthChange: false,
-          autoWidth: false,
-          dom: 'Bfrtip',
-          buttons: ['excel', 'csv', 'print']
+        var envColIndex = 7;
+        var uniqueValues = [];
+        envTable.column(envColIndex).data().each(function (value) {
+          if (value) value.split(" | ").forEach(v => { if (!uniqueValues.includes(v)) uniqueValues.push(v); });
         });
-        $('#crenvSearch').on('keyup', function () { crenvTable.search(this.value).draw(); });
+        uniqueValues.sort().forEach(v => $('#envAlarmFilter').append('<option value="' + v + '">' + v + '</option>'));
+        var defaultSelected = ["Power", "High temp", "Fire", "Air Condition", "Major"];
+        $('#envAlarmFilter').val(defaultSelected);
+
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+          if (settings.nTable.id !== 'envTable') return true;
+          var selected = $('#envAlarmFilter').val(); if (!selected || selected.length === 0) return true;
+          var envText = data[envColIndex];
+          return selected.some(val => envText.includes(val));
+        });
+
+        $('#envAlarmFilter').on('change', function () { envTable.draw(); });
       }
 
       // Dark Mode
