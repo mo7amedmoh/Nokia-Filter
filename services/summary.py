@@ -136,7 +136,7 @@ def build_summary(filepath, selected_oz=None):
                     "Site Code": site_code,
                     "Site Name": row["Site Name"],
                     "SC Office": row["SC Office"],
-                    "ENV Alarm": "<br>".join(critical_env),
+                    "ENV Alarm": " | ".join(critical_env),
                     "Site Type": site_type
                 })
 

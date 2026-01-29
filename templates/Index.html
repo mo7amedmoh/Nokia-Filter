@@ -47,10 +47,6 @@
           <label for="file" class="form-label">Select file</label>
           <input class="form-control" type="file" name="NSN Update" id="file" required>
         </div>
-        <hr>
-        <button type="submit" class="btn btn-success">Start</button>
-        <button type="reset" class="btn btn-danger">Clear</button>
-
         <h5>Operation Zone</h5>
 
         {% for oz in oz_list %}
@@ -61,6 +57,9 @@
           </label>
         </div>
         {% endfor %}
+        <hr>
+        <button type="submit" class="btn btn-success">Start</button>
+        <button type="reset" class="btn btn-danger">Clear</button>
 
       </form>
     </div>
