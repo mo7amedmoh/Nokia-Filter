@@ -119,7 +119,7 @@ def build_summary(filepath, selected_oz=None):
         row["Site Name"] = site_name_html
 
         if site_code in env_info:
-            site_type = master.get("Site Type", "").upper()
+            site_type = str(master.get("Site Type", "")).strip().upper()
             site_env = env_info[site_code]
 
             # ===== ENV Alarms =====
