@@ -10,12 +10,7 @@ def build_summary(filepath, selected_oz=None):
     down_info = build_down_dict(filepath)
     env_info = build_env_dict(filepath)
 
-    comments_list = [
-        "","Under Investigation", "Weather Issue", "Access Requested", "Access Blocked", "Owner Financial issue",
-        "On way to site", "Working in site", "Spare parts required",
-        "Spare Shortage", "Power Issue", "Cleared", "Access Tower H&S","Reset Action Requested",
-        "H&S case", "HDSL", "Planned Action", "Cascaded", "Shared PM Issue ","Theft and sabotage","Owner PM Issue"
-    ]
+    comments_list = loaders.comments_list
 
     def escape_but_allow_br(text):
         return html.escape(text).replace("&lt;br&gt;", "<br>")

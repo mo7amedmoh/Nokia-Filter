@@ -28,13 +28,20 @@ def get_live_data():
             .str.strip()
             .unique()
         )
-        return site_master_dict, valid_sites, oz_list
+
+        # ===== Load Comments List =====
+        COMMENTS_URL = 'https://docs.google.com/spreadsheets/d/1VQrXnYudk5P-kgOio_sPXweFGi5v90gH3hW3CMjo5pA/export?format=csv'
+        comments_df = pd.read_csv(COMMENTS_URL)
+        # Assume the comments are in the first column
+        comments_list = [""] + comments_df.iloc[:, 0].dropna().astype(str).str.strip().tolist()
+
+        return site_master_dict, valid_sites, oz_list, comments_list
     except Exception as e:
         print(f"Error loading live data: {e}")
-        return {}, set(), []
+        return {}, set(), [], [""]
 
 # Initial Load
-site_master_dict, valid_sites, oz_list = get_live_data()
+site_master_dict, valid_sites, oz_list, comments_list = get_live_data()
 
 
 # ===== Load Alarm Config =====
@@ -90,5 +97,6 @@ __all__ = [
     "valid_sites",
     "critical_env_alarms",
     "oz_list",
-    "get_live_data"
+    "get_live_data",
+    "comments_list"
 ]
