@@ -11,7 +11,7 @@ def build_summary(filepath, selected_oz=None):
     env_info = build_env_dict(filepath)
 
     comments_list = [
-        "", "Weather Issue", "Access Requested", "Access Blocked", "Owner Financial issue",
+        "","Under Investigation", "Weather Issue", "Access Requested", "Access Blocked", "Owner Financial issue",
         "On way to site", "Working in site", "Spare parts required",
         "Spare Shortage", "Power Issue", "Cleared", "Access Tower H&S",
         "H&S case", "HDSL", "Planned Action", "Cascaded", "Shared PM Issue ","Theft and sabotage","Owner PM Issue"
