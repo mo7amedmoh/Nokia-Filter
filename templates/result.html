@@ -306,7 +306,7 @@
               <tr>
                 {% for key in tables_down_env[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th {% if key=="Comment" %}class="comment" {% endif %}>
+                <th {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -317,7 +317,7 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td {% if key=="Comment" %}class="comment" {% endif %}>
+                <td {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -357,7 +357,7 @@
               <tr>
                 {% for key in tables_env_only[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th {% if key=="Comment" %}class="comment" {% endif %}>
+                <th {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -368,7 +368,7 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td {% if key=="Comment" %}class="comment" {% endif %}>
+                <td {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -409,17 +409,19 @@
           >
             <thead>
               <tr>
-                {% for key in critical_env_table[0].keys() %}
+                {% for key in critical_env_table[0].keys() %} {% if not
+                key.startswith("_") %}
                 <th>{{ key }}</th>
-                {% endfor %}
+                {% endif %} {% endfor %}
               </tr>
             </thead>
             <tbody>
               {% for row in critical_env_table %}
               <tr>
-                {% for key,val in row.items() %}
+                {% for key,val in row.items() %} {% if not key.startswith("_")
+                %}
                 <td>{{ val|safe }}</td>
-                {% endfor %}
+                {% endif %} {% endfor %}
               </tr>
               {% endfor %}
             </tbody>
@@ -558,9 +560,11 @@
         if ($("#criticalEnvTable").length) {
           var criticalEnvTable = $("#criticalEnvTable").DataTable({
             pageLength: 25,
-            ordering: false,
+            ordering: true, // Enable ordering
+            order: [[4, "desc"]], // Default sort by 5th column (Time) newest first
             lengthChange: false,
             autoWidth: false,
+            columnDefs: [{ targets: [1], maxWidth: 80 }],
             dom: "Bfrtip",
             buttons: ["excel", "csv", "print"],
           });

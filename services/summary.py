@@ -145,7 +145,8 @@ def build_summary(filepath, selected_oz=None):
                     "Site Name": row["Site Name"],
                     "SC Office": row["SC Office"],
                     "ENV Alarm": " | ".join(critical_env),
-                    "ENV Alarm Time": row["ENV Alarm Time"]
+                    "ENV Alarm Time": row["ENV Alarm Time"],
+                    "_env_time": row["_env_time"] # Hidden for sorting
                 })
 
         rows.append(row)
@@ -206,6 +207,9 @@ def build_summary(filepath, selected_oz=None):
         df_excel = df_excel.drop(columns=cols_to_drop)
         
     df_excel.to_excel(excel_path, index=False)
+
+    # Sort Critical ENV Table (Newest First)
+    critical_env_table.sort(key=lambda x: x.get("_env_time", pd.Timestamp.min), reverse=True)
 
     tech_labels = ['2G','3G','4G','5G']
     tech_counts = [0,0,0,0]
