@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_file
 import os
 from services.summary import build_summary
-from services.loaders import oz_list
+from services.loaders import oz_list, get_live_data, site_master_dict, valid_sites
 
 app = Flask(__name__)
 
@@ -13,6 +13,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # =========================
 @app.route("/", methods=["GET"])
 def index():
+    global oz_list, site_master_dict, valid_sites
+    # Refresh data core lists on every page load
+    site_master_dict, valid_sites, oz_list = get_live_data()
     return render_template(
         "Index.html",
         oz_list=oz_list

@@ -1,4 +1,4 @@
-from services.loaders import site_master_dict, valid_sites, critical_env_alarms
+import services.loaders as loaders
 from services.down_logic import build_down_dict
 from services.env_logic import build_env_dict
 import pandas as pd
@@ -23,8 +23,8 @@ def build_summary(filepath, selected_oz=None):
     rows = []
     critical_env_table = []
 
-    for site_code in valid_sites:
-        master = site_master_dict.get(site_code, {})
+    for site_code in loaders.valid_sites:
+        master = loaders.site_master_dict.get(site_code, {})
         if selected_oz:
             oz = str(master.get("OZ","")).strip()
             if oz != selected_oz:
@@ -136,7 +136,7 @@ def build_summary(filepath, selected_oz=None):
             critical_env = []
             for alarm in site_env.get("alarms", []):
                 clean_alarm = alarm.upper().strip()
-                if clean_alarm in critical_env_alarms and site_type not in ["MICRO", "PICO", "NANO"]:
+                if clean_alarm in loaders.critical_env_alarms and site_type not in ["MICRO", "PICO", "NANO"]:
                     critical_env.append(escape_but_allow_br(alarm))
 
             if critical_env:

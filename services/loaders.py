@@ -10,14 +10,31 @@ def clean_text(val):
         return ""
     return str(val).upper().replace('\r',' ').replace('\n',' ').strip()
 
-# ===== Load Site Master =====
-MASTER_URL = 'https://docs.google.com/spreadsheets/d/1JgwNsrL8U81-HelF0HYvaBLwlaK7oIHw/export?format=csv'
-site_master = pd.read_csv(MASTER_URL)
-site_master.columns = site_master.columns.str.strip()
-site_master["Site Code"] = site_master["Site Code"].astype(str).str.strip().apply(clean_text)
-site_master = site_master.drop_duplicates(subset=["Site Code"])
-site_master_dict = site_master.set_index("Site Code").to_dict("index")
-valid_sites = set(site_master_dict.keys())
+# ===== Load Site Master Function =====
+def get_live_data():
+    MASTER_URL = 'https://docs.google.com/spreadsheets/d/1JgwNsrL8U81-HelF0HYvaBLwlaK7oIHw/export?format=csv'
+    try:
+        site_master = pd.read_csv(MASTER_URL)
+        site_master.columns = site_master.columns.str.strip()
+        site_master["Site Code"] = site_master["Site Code"].astype(str).str.strip().apply(clean_text)
+        site_master = site_master.drop_duplicates(subset=["Site Code"])
+        site_master_dict = site_master.set_index("Site Code").to_dict("index")
+        valid_sites = set(site_master_dict.keys())
+        
+        oz_list = sorted(
+            site_master["OZ"]
+            .dropna()
+            .astype(str)
+            .str.strip()
+            .unique()
+        )
+        return site_master_dict, valid_sites, oz_list
+    except Exception as e:
+        print(f"Error loading live data: {e}")
+        return {}, set(), []
+
+# Initial Load
+site_master_dict, valid_sites, oz_list = get_live_data()
 
 
 # ===== Load Alarm Config =====
@@ -68,18 +85,10 @@ def extract_site_code(row):
     return None
 
 
-# ===== OZ List =====
-oz_list = sorted(
-    site_master["OZ"]
-    .dropna()
-    .astype(str)
-    .str.strip()
-    .unique()
-)
-
 __all__ = [
     "site_master_dict",
     "valid_sites",
     "critical_env_alarms",
-    "oz_list"
+    "oz_list",
+    "get_live_data"
 ]
