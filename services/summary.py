@@ -98,65 +98,66 @@ def build_summary(filepath, selected_oz=None):
                 row["Down Alarm Description"] = "<br>".join(dict.fromkeys(lines))
 
         
-        # ENV
+        # ===== Badges & HTML Site Name =====
+        badges = []
+        for bname, col in [("VIP", "VIP"), ("CEO", "CEO"), ("Router", "Router")]:
+            if str(master.get(col, "")).strip().upper() in ["TRUE", "YES", "1"]:
+                badges.append(f'<span class="badge badge-{bname.lower()} me-1">{bname}</span>')
+
+        nodal = master.get("Nodal Deg.", "")
+        power = master.get("Power Source", "")
+        bdt = master.get("Backup time", "")
+        site_type_val = master.get("Site Type", "")
+
+        site_name_html = str(master.get("Site Name", site_code)) + "<br>"
+        if bdt: site_name_html += f'<span class="badge badge-bdt me-1">{bdt} mins</span>'
+        if nodal: site_name_html += f'<span class="badge badge-nodal me-1">{nodal}</span>'
+        if power: site_name_html += f'<span class="badge badge-power me-1">{power}</span>'
+        if site_type_val: site_name_html += f'<span class="badge badge-site me-1">{site_type_val}</span>'
+        site_name_html += " ".join(badges)
         
-    if site_code in env_info:
-        site_type = master.get("Site Type","").upper()
-        site_env = env_info[site_code]
+        row["Site Name"] = site_name_html
 
-        # ===== ENV Alarms =====
-        env_alarms = [escape_but_allow_br(a) for a in site_env.get("alarms",[])]
-        row["ENV Alarms"] = " | ".join(env_alarms)
+        if site_code in env_info:
+            site_type = master.get("Site Type", "").upper()
+            site_env = env_info[site_code]
 
-        # ===== ENV Times =====
-        env_times = pd.to_datetime(site_env.get("times", []), errors="coerce").dropna()
-        if len(env_times) > 0:
-            row["ENV Alarm Time"] = env_times.max().strftime("%Y-%m-%d %H:%M:%S")
-            row["_env_time"] = env_times.max()
+            # ===== ENV Alarms =====
+            env_alarms = [escape_but_allow_br(a) for a in site_env.get("alarms", [])]
+            row["ENV Alarms"] = " | ".join(env_alarms)
 
-        # ===== Critical ENV =====
-        critical_env = []
-        for alarm in site_env.get("alarms", []):
-            clean_alarm = alarm.upper().strip()
-            if clean_alarm in critical_env_alarms and site_type not in ["MICRO", "PICO", "NANO"]:
-                critical_env.append(escape_but_allow_br(alarm))
+            # ===== ENV Times =====
+            env_times = pd.to_datetime(site_env.get("times", []), errors="coerce").dropna()
+            if len(env_times) > 0:
+                row["ENV Alarm Time"] = env_times.max().strftime("%Y-%m-%d %H:%M:%S")
+                row["_env_time"] = env_times.max()
 
-        if critical_env:
-            critical_env_table.append({
-                "Site Code": site_code,
-                "Site Name": row["Site Name"],
-                "SC Office": row["SC Office"],
-                "ENV Alarm": " | >".join(critical_env),
-                "ENV Alarm Time": row["ENV Alarm Time"]
-            })
+            # ===== Critical ENV =====
+            critical_env = []
+            for alarm in site_env.get("alarms", []):
+                clean_alarm = alarm.upper().strip()
+                if clean_alarm in critical_env_alarms and site_type not in ["MICRO", "PICO", "NANO"]:
+                    critical_env.append(escape_but_allow_br(alarm))
 
+            if critical_env:
+                critical_env_table.append({
+                    "Site Code": site_code,
+                    "Site Name": row["Site Name"],
+                    "SC Office": row["SC Office"],
+                    "ENV Alarm": " | ".join(critical_env),
+                    "ENV Alarm Time": row["ENV Alarm Time"]
+                })
 
         rows.append(row)
 
     df = pd.DataFrame(rows)
-    df = df[(df["Down Alarm"]!="") | (df["ENV Alarms"]!="")].reset_index(drop=True)
-
-    # Badges
-    for i, row in df.iterrows():
-        site_code = str(row.get("Site Code","")).strip()
-        master = site_master_dict.get(site_code, {})
-        badges = []
-        for bname, col in [("VIP","VIP"),("CEO","CEO"),("Router","Router")]:
-            if str(master.get(col,"")).strip().upper() in ["TRUE","YES","1"]:
-                badges.append(f'<span class="badge badge-{bname.lower()} me-1">{bname}</span>')
-
-        nodal = master.get("Nodal Deg.","")
-        power = master.get("Power Source","")
-        bdt = master.get("Backup time","")
-        site_type = master.get("Site Type","")
-
-        site_name_html = str(row.get("Site Name","")) + "<br>"
-        if bdt: site_name_html += f'<span class="badge badge-bdt me-1">{bdt} mins</span>'
-        if nodal: site_name_html += f'<span class="badge badge-nodal me-1">{nodal}</span>'
-        if power: site_name_html += f'<span class="badge badge-power me-1">{power}</span>'
-        if site_type: site_name_html += f'<span class="badge badge-site me-1">{site_type}</span>'
-        site_name_html += " ".join(badges)
-        df.at[i,"Site Name"] = site_name_html
+    if df.empty:
+        # Create empty df with expected columns if it's empty to avoid KeyError later
+        df = pd.DataFrame(columns=["Site Code", "Site Name", "SC Office", "Down Alarm", "Down Alarm Description", 
+                                   "Alarm Time", "Down Type", "ENV Alarms", "ENV Alarm Time", "Comment", "Duration",
+                                   "_down_time", "_env_time"])
+    else:
+        df = df[(df["Down Alarm"] != "") | (df["ENV Alarms"] != "")].reset_index(drop=True)
 
     # Dashboards
     dashboard = {}
@@ -176,8 +177,35 @@ def build_summary(filepath, selected_oz=None):
     tables_down_env = df[df["Down Alarm"]!=""].sort_values(by="_down_time", ascending=True).to_dict("records")
     tables_env_only = df[(df["Down Alarm"]=="") & (df["ENV Alarms"]!="")].sort_values(by="_env_time", ascending=False).to_dict("records")
 
-    excel_path = os.path.join("uploads","Summary.xlsx")
-    df.to_excel(excel_path,index=False)
+    excel_path = os.path.join("uploads", "Summary.xlsx")
+    
+    # Create clean version for Excel
+    df_excel = df.copy()
+    
+    # Remove HTML badges from Site Name for Excel
+    # We can either strip tags or just use the master data again, 
+    # but since Site Name was already modified in the loop, let's just strip HTML.
+    import re
+    def strip_html(text):
+        if not isinstance(text, str): return text
+        # Remove <br> and replace with space, then remove all tags
+        clean = re.sub('<br\s*/?>', ' ', text)
+        clean = re.sub('<[^<]+?>', '', clean)
+        return clean.strip()
+    
+    if "Site Name" in df_excel.columns:
+        df_excel["Site Name"] = df_excel["Site Name"].apply(strip_html)
+        
+    # Clear Comment column for Excel (it contains a list of options for web)
+    if "Comment" in df_excel.columns:
+        df_excel["Comment"] = ""
+        
+    # Drop internal columns
+    cols_to_drop = [c for c in df_excel.columns if c.startswith("_")]
+    if cols_to_drop:
+        df_excel = df_excel.drop(columns=cols_to_drop)
+        
+    df_excel.to_excel(excel_path, index=False)
 
     tech_labels = ['2G','3G','4G','5G']
     tech_counts = [0,0,0,0]

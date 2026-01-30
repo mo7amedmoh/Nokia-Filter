@@ -36,7 +36,7 @@ def process():
     file.save(path)
 
     # Build summary (بنفس المنطق)
-    df, dashboard, dashboard_summary, tables_down_env, tables_env_only,critical_env_table, \
+    df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \
     tech_labels, tech_counts, down_type_counts, env_labels, env_values, excel_path = \
         build_summary(path, selected_oz)
 
