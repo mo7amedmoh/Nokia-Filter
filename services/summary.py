@@ -13,7 +13,7 @@ def build_summary(filepath, selected_oz=None):
     comments_list = [
         "","Under Investigation", "Weather Issue", "Access Requested", "Access Blocked", "Owner Financial issue",
         "On way to site", "Working in site", "Spare parts required",
-        "Spare Shortage", "Power Issue", "Cleared", "Access Tower H&S",
+        "Spare Shortage", "Power Issue", "Cleared", "Access Tower H&S","Reset Action Requested",
         "H&S case", "HDSL", "Planned Action", "Cascaded", "Shared PM Issue ","Theft and sabotage","Owner PM Issue"
     ]
 
