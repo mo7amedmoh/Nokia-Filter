@@ -306,7 +306,7 @@
               <tr>
                 {% for key in tables_down_env[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th {% if key=="Comment" %}class="comment" {% endif %}>
+                <th {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -317,7 +317,7 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td {% if key=="Comment" %}class="comment" {% endif %}>
+                <td {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -357,7 +357,7 @@
               <tr>
                 {% for key in tables_env_only[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th {% if key=="Comment" %}class="comment" {% endif %}>
+                <th {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -368,7 +368,7 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td {% if key=="Comment" %}class="comment" {% endif %}>
+                <td {% if key="" ="Comment" %}class="comment" {% endif %}>
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -457,7 +457,7 @@
             lengthChange: false,
             autoWidth: false,
             columnDefs: [
-              { targets: [3, 6], visible: false },
+              { targets: [6], visible: false },
               { targets: [1], maxWidth: 80 },
             ],
             dom: "Bfrtip",
