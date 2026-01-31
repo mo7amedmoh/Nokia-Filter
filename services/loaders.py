@@ -10,10 +10,23 @@ def clean_text(val):
         return ""
     return str(val).upper().replace('\r',' ').replace('\n',' ').strip()
 
+# ===== Global Cache =====
+_cached_data = None
+_last_fetch_time = None
+
 # ===== Load Site Master Function =====
-def get_live_data():
+def get_live_data(force_refresh=False):
+    global _cached_data, _last_fetch_time
+    
+    # Check cache (10 minutes timeout)
+    now = datetime.now()
+    if not force_refresh and _cached_data and _last_fetch_time:
+        if (now - _last_fetch_time).total_seconds() < 600:
+            return _cached_data
+
     MASTER_URL = 'https://docs.google.com/spreadsheets/d/1JgwNsrL8U81-HelF0HYvaBLwlaK7oIHw/export?format=csv'
     try:
+        print(f"Fetching live data from Google Sheets... ({now})")
         site_master = pd.read_csv(MASTER_URL)
         site_master.columns = site_master.columns.str.strip()
         site_master["Site Code"] = site_master["Site Code"].astype(str).str.strip().apply(clean_text)
@@ -35,9 +48,13 @@ def get_live_data():
         # Assume the comments are in the first column
         comments_list = [""] + comments_df.iloc[:, 0].dropna().astype(str).str.strip().tolist()
 
-        return site_master_dict, valid_sites, oz_list, comments_list
+        _cached_data = (site_master_dict, valid_sites, oz_list, comments_list)
+        _last_fetch_time = now
+        return _cached_data
     except Exception as e:
         print(f"Error loading live data: {e}")
+        if _cached_data:
+            return _cached_data
         return {}, set(), [], [""]
 
 # Initial Load

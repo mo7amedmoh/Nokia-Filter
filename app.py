@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, send_file
 import os
+import subprocess
+from pathlib import Path
 from services.summary import build_summary
 import services.loaders as loaders
 
@@ -34,8 +36,31 @@ def process():
     if not selected_oz:
         return "Please select OZ", 400
 
-    path = os.path.join(UPLOAD_FOLDER, file.filename)
+    filename = file.filename
+    path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(path)
+
+    # Handle ZIP/RAR files using system 'tar'
+    if filename.lower().endswith((".zip", ".rar")):
+        try:
+            extract_dir = os.path.join(UPLOAD_FOLDER, "extracted_" + Path(filename).stem)
+            os.makedirs(extract_dir, exist_ok=True)
+            
+            # Use Windows built-in tar (bsdtar) to extract
+            # -x: extract, -f: file, -C: change to directory
+            result = subprocess.run(["tar", "-xf", path, "-C", extract_dir], capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                return f"Error extracting archive: {result.stderr}", 400
+                
+            # Find the first .xlsx file
+            xlsx_files = list(Path(extract_dir).rglob("*.xlsx"))
+            if not xlsx_files:
+                return "No Excel file (.xlsx) found in the archive", 400
+            
+            path = str(xlsx_files[0]) # Use the first found Excel file
+        except Exception as e:
+            return f"Error extracting archive: {e}", 400
 
     # Build summary (بنفس المنطق)
     df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \
