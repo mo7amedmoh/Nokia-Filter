@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -77,7 +77,8 @@ def filter_last_40_days(df, time_col="Alarm Time"):
         return df
     df = df.copy()
     df[time_col] = pd.to_datetime(df[time_col], errors="coerce")
-    cutoff_date = datetime.now() - timedelta(days=40)
+    cairo_now = datetime.now(timezone(timedelta(hours=2))).replace(tzinfo=None)
+    cutoff_date = cairo_now - timedelta(days=40)
     return df[(df[time_col].notna()) & (df[time_col] >= cutoff_date)]
 
 # ===== Extract Site Code =====

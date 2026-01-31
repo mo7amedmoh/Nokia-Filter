@@ -2,11 +2,14 @@ import services.loaders as loaders
 from services.down_logic import build_down_dict
 from services.env_logic import build_env_dict
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 import html
 
 def build_summary(filepath, selected_oz=None):
+    # Fix Timezone for Deployed Version (Cairo Time UTC+2)
+    cairo_now = datetime.now(timezone(timedelta(hours=2))).replace(tzinfo=None)
+    
     down_info = build_down_dict(filepath)
     env_info = build_env_dict(filepath)
 
@@ -55,7 +58,7 @@ def build_summary(filepath, selected_oz=None):
                 if len(down_times) > 0:
                     row["Alarm Time"] = down_times.min().strftime("%Y-%m-%d %H:%M:%S")
                     row["_down_time"] = down_times.min()
-                    duration = datetime.now() - down_times.min()
+                    duration = cairo_now - down_times.min()
                     total_minutes = int(duration.total_seconds() // 60)
                     hours = total_minutes // 60
                     minutes = total_minutes % 60
@@ -137,7 +140,7 @@ def build_summary(filepath, selected_oz=None):
                 row["_env_time"] = max_env_time
                 
                 # Calculate Duration based on Newest ENV alarm
-                duration_env = datetime.now() - max_env_time
+                duration_env = cairo_now - max_env_time
                 total_minutes = int(duration_env.total_seconds() // 60)
                 hours = total_minutes // 60
                 minutes = total_minutes % 60
