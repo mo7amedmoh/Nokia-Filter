@@ -332,7 +332,8 @@
                 >
                   {% if key=="Comment" %}
                   <select
-                    class="form-select form-select-sm"
+                    class="form-select form-select-sm comment-persist"
+                    data-sitecode="{{ row['Site Code'] }}"
                     title="{{ val|join(', ') }}"
                   >
                     {% for option in val %}
@@ -387,7 +388,8 @@
                 >
                   {% if key=="Comment" %}
                   <select
-                    class="form-select form-select-sm"
+                    class="form-select form-select-sm comment-persist"
+                    data-sitecode="{{ row['Site Code'] }}"
                     title="{{ val|join(', ') }}"
                   >
                     {% for option in val %}
@@ -546,6 +548,34 @@
             envTable.draw();
           });
         }
+
+        // --- Persistent Comments Logic ---
+        function loadSavedComments() {
+          $(".comment-persist").each(function () {
+            const siteCode = $(this).data("sitecode");
+            const savedValue = localStorage.getItem("comment_" + siteCode);
+            if (savedValue) {
+              $(this).val(savedValue);
+            }
+          });
+        }
+
+        $(document).on("change", ".comment-persist", function () {
+          const siteCode = $(this).data("sitecode");
+          const val = $(this).val();
+          if (siteCode) {
+            localStorage.setItem("comment_" + siteCode, val);
+          }
+        });
+
+        // Initialize saved comments
+        loadSavedComments();
+
+        // Re-apply comments when tables are redrawn (pagination, sorting, filtering)
+        if (typeof downTable !== "undefined")
+          downTable.on("draw", loadSavedComments);
+        if (typeof envTable !== "undefined")
+          envTable.on("draw", loadSavedComments);
 
         // Dark Mode
         const toggleBtn = document.getElementById("toggleDark");
