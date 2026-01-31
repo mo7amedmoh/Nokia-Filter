@@ -95,10 +95,25 @@ def build_summary(filepath, selected_oz=None):
                 row["Down Alarm Description"] = "Total Down"
             elif row["Down Type"] == "Partial":
                 lines = []
+                all_hw = set()
+                tech_counts = {}
+
                 for tech, tech_descs in site_down.get("descriptions_per_tech", {}).items():
                     for desc in tech_descs:
-                        lines.append(f"{tech}: {escape_but_allow_br(desc)}")
-                row["Down Alarm Description"] = "<br>".join(dict.fromkeys(lines))
+                        if desc.startswith("CELLS_COUNT:"):
+                            tech_counts[tech] = desc.split(":")[1]
+                        elif desc.startswith("HW Alarm:"):
+                            all_hw.add(desc)
+                
+                # Format: 2G: 3
+                for tech, count in tech_counts.items():
+                    lines.append(f"{tech}: {count}")
+                
+                # Format: HW Alarm: alarm name (unit name)
+                for hw in sorted(list(all_hw)):
+                    lines.append(escape_but_allow_br(hw))
+                
+                row["Down Alarm Description"] = "<br>".join(lines)
 
         
         # ===== Badges & HTML Site Name =====

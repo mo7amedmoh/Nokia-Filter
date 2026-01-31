@@ -1,7 +1,7 @@
 import pandas as pd
 from services.loaders import clean_text, valid_sites, down_alarm_names, alarm_category_dict, hw_rename_dict, TECH_MAP, extract_site_code, filter_last_40_days
 
-def build_down_description_per_tech(row, alarm_category):
+def build_down_description_per_tech(row, alarm_category, current_tech):
     desc_per_tech = {}
 
     if alarm_category == "O&M":
@@ -27,37 +27,41 @@ def build_down_description_per_tech(row, alarm_category):
 
     for tech, count in cells_map.items():
         desc_per_tech.setdefault(tech, [])
-        desc_per_tech[tech].append(f"{tech} Cells: {count}")
+        # Only store the count, we'll prefix tech in summary.py
+        desc_per_tech[tech].append(f"CELLS_COUNT:{count}")
 
-    # ===== HW Alarm (مع rename) =====
+    # ===== HW Alarm (Lookup via Supplementary Information) =====
     hw_items = set()
-    if supp_info:
-        hw_name = hw_rename_dict.get(supp_info.upper(), supp_info)
-        hw_items.add(f"HW Alarm: {hw_name}")
+    # The 'alarm name' comes from the Output column in HW-Rename.xlsx
+    # We use supp_info as the key.
+    alarm_name_from_dict = hw_rename_dict.get(supp_info.upper(), supp_info)
 
-    # ==== ربط HW بالـ techs اللي عندها cells ====
-    for tech in cells_map.keys():
-        for hw in hw_items:
-            if hw not in desc_per_tech.setdefault(tech, []):
-                desc_per_tech[tech].append(hw)
-
-    # لو مفيش cells بس فيه HW
-    if not cells_map and hw_items:
-        sheet_tech = row.get("Sheet Tech", "").upper()
-        for hw in hw_items:
-            desc_per_tech.setdefault(sheet_tech, []).append(hw)
-
-    # ==== HW من unitName= ====
+    # Determine unit names (could be multiple in diagnostic info)
+    hw_units = []
     if "unitname=" in diag_info.lower():
         parts = diag_info.lower().split("unitname=")[1:]
         for part in parts:
-            unit = part[:4].upper()  # أول 4 حروف
-            hw_name = hw_rename_dict.get(supp_info.upper(), supp_info)
-            hw_items.add(f"{hw_name} ({unit})")
-        for tech in (list(cells_map.keys()) or [row.get("Sheet Tech","").upper()]):
-            for hw in hw_items:
-                if hw not in desc_per_tech.setdefault(tech, []):
-                    desc_per_tech[tech].append(hw)
+            # Taking the unit name, usually a short string after unitname=
+            unit = part.split(";")[0].split(" ")[0].upper().strip()
+            if unit:
+                hw_units.append(unit)
+    
+    # Fallback to supp_info if no specific unitname found
+    if not hw_units and supp_info:
+        hw_units.append(supp_info)
+
+    # Build the formatted HW Alarm lines
+    for unit in hw_units:
+        hw_items.add(f"HW Alarm: {alarm_name_from_dict} ({unit})")
+
+    # Add HW items to affected techs
+    target_techs = list(cells_map.keys())
+    if not target_techs:
+        target_techs = [current_tech]
+
+    for tech in target_techs:
+        for hw in hw_items:
+            desc_per_tech.setdefault(tech, []).append(hw)
 
     return desc_per_tech
 
@@ -105,7 +109,7 @@ def build_down_dict(filepath):
                         down_info[site_code]["partial_only"].add(tech) # Using partial_only as a flag for O&M + Cells
 
                 # ===== Build descriptions per tech مع HW rename =====
-                desc_dict = build_down_description_per_tech(row, cat)
+                desc_dict = build_down_description_per_tech(row, cat, tech)
                 for t, descs in desc_dict.items():
                     down_info[site_code]["descriptions_per_tech"].setdefault(t, [])
                     for d in descs:
