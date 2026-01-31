@@ -198,6 +198,9 @@
           <button id="copyImage" class="btn btn-primary me-2">
             <i class="fas fa-camera"></i> Copy Table as Image
           </button>
+          <button id="shareWhatsApp" class="btn btn-success me-2">
+            <i class="fab fa-whatsapp"></i> Share to WhatsApp
+          </button>
           <a href="/" class="btn btn-secondary">
             <i class="fas fa-undo"></i> Start Over
           </a>
@@ -310,7 +313,9 @@
               <tr>
                 {% for key in tables_down_env[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}">
+                <th
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                >
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -321,7 +326,9 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}">
+                <td
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                >
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -361,7 +368,9 @@
               <tr>
                 {% for key in tables_env_only[0].keys() %} {% if not
                 key.startswith("_") %}
-                <th class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}">
+                <th
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                >
                   {{ key }}
                 </th>
                 {% endif %} {% endfor %}
@@ -372,7 +381,9 @@
               <tr>
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
-                <td class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}">
+                <td
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                >
                   {% if key=="Comment" %}
                   <select
                     class="form-select form-select-sm"
@@ -556,15 +567,111 @@
           updateIcon();
         });
 
-        // Copy table as image
+        // Copy table as image with high quality
         $("#copyImage").click(function () {
-          html2canvas(document.querySelector(".tab-content")).then((canvas) => {
-            canvas.toBlob(function (blob) {
-              navigator.clipboard.write([
-                new ClipboardItem({ "image/png": blob }),
-              ]);
-              alert("Table copied as image!");
-            });
+          const target = document.querySelector(".tab-content");
+
+          // Show a feedback to the user
+          const btn = $(this);
+          const originalHtml = btn.html();
+          btn.html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+          btn.prop("disabled", true);
+
+          html2canvas(target, {
+            scale: 2, // Double the resolution
+            useCORS: true,
+            logging: false,
+            backgroundColor: body.classList.contains("dark-mode")
+              ? "#121212"
+              : "#ffffff",
+            windowWidth: target.scrollWidth,
+            windowHeight: target.scrollHeight,
+          }).then((canvas) => {
+            canvas.toBlob(
+              function (blob) {
+                navigator.clipboard
+                  .write([new ClipboardItem({ "image/png": blob })])
+                  .then(() => {
+                    btn.html(originalHtml);
+                    btn.prop("disabled", false);
+                    alert("Table copied as High-Quality image!");
+                  });
+              },
+              "image/png",
+              1.0,
+            );
+          });
+        });
+
+        // WhatsApp Share Functionality
+        $("#shareWhatsApp").click(function () {
+          const target = document.querySelector(".tab-content");
+          const btn = $(this);
+          const originalHtml = btn.html();
+
+          btn.html('<i class="fas fa-spinner fa-spin"></i> Preparing...');
+          btn.prop("disabled", true);
+
+          html2canvas(target, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: body.classList.contains("dark-mode")
+              ? "#121212"
+              : "#ffffff",
+          }).then((canvas) => {
+            canvas.toBlob(
+              async (blob) => {
+                const file = new File([blob], "Alarms_Report.png", {
+                  type: "image/png",
+                });
+                const shareData = {
+                  files: [file],
+                  title: "Alarms Report",
+                  text: "Network Alarms Filter Report",
+                };
+
+                // Try using Web Share API (Mobile & some Desktop Browsers)
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                  try {
+                    await navigator.share(shareData);
+                    btn.html(originalHtml);
+                    btn.prop("disabled", false);
+                  } catch (err) {
+                    console.error("Share failed:", err);
+                    btn.html(originalHtml);
+                    btn.prop("disabled", false);
+                  }
+                } else {
+                  // Fallback: Copy to clipboard and open WhatsApp
+                  try {
+                    await navigator.clipboard.write([
+                      new ClipboardItem({ "image/png": blob }),
+                    ]);
+                    btn.html(originalHtml);
+                    btn.prop("disabled", false);
+
+                    if (
+                      confirm(
+                        "Image copied to clipboard! Click OK to open the WhatsApp Group. Once opened, just paste (Ctrl+V) the image to share it.",
+                      )
+                    ) {
+                      window.open(
+                        "https://chat.whatsapp.com/ESrb8mvVRXg5CGPgMI6eVo",
+                        "_blank",
+                      );
+                    }
+                  } catch (err) {
+                    alert(
+                      "Sharing not supported on this browser. Please use the 'Copy Table as Image' button.",
+                    );
+                    btn.html(originalHtml);
+                    btn.prop("disabled", false);
+                  }
+                }
+              },
+              "image/png",
+              1.0,
+            );
           });
         });
 
