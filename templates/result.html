@@ -315,7 +315,7 @@
                 {% for key in tables_down_env[0].keys() %} {% if not
                 key.startswith("_") %}
                 <th
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {{ key }}
                 </th>
@@ -328,7 +328,7 @@
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
                 <td
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {% if key=="Comment" %}
                   <select
@@ -370,7 +370,7 @@
                 {% for key in tables_env_only[0].keys() %} {% if not
                 key.startswith("_") %}
                 <th
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {{ key }}
                 </th>
@@ -383,7 +383,7 @@
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
                 <td
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {% if key=="Comment" %}
                   <select
@@ -428,7 +428,7 @@
                 {% for key in critical_env_table[0].keys() %} {% if not
                 key.startswith("_") %}
                 <th
-                  class="{% if key in ['Site Code', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key in ['Site Code','Site Name', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {{ key }}
                 </th>
@@ -441,7 +441,7 @@
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
                 <td
-                  class="{% if key in ['Site Code', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key in ['Site Code','Site Name', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {{ val|safe }}
                 </td>
