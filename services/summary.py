@@ -136,8 +136,8 @@ def build_summary(filepath, selected_oz=None):
                 row["ENV Alarm Time"] = max_env_time.strftime("%Y-%m-%d %H:%M:%S")
                 row["_env_time"] = max_env_time
                 
-                # Calculate Duration based on ENV alarm
-                duration_env = datetime.now() - min_env_time
+                # Calculate Duration based on Newest ENV alarm
+                duration_env = datetime.now() - max_env_time
                 total_minutes = int(duration_env.total_seconds() // 60)
                 hours = total_minutes // 60
                 minutes = total_minutes % 60
