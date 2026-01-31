@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_file
 import os
 import zipfile
-import rarfile
+import subprocess
 import shutil
 from pathlib import Path
 from services.summary import build_summary
@@ -51,11 +51,15 @@ def process():
             os.makedirs(extract_dir, exist_ok=True)
             
             if filename.lower().endswith(".zip"):
+                # ZIP is handled by pure python zipfile (safe everywhere)
                 with zipfile.ZipFile(path, 'r') as zip_ref:
                     zip_ref.extractall(extract_dir)
-            else: # .rar
-                with rarfile.RarFile(path) as rar_ref:
-                    rar_ref.extractall(extract_dir)
+            else: 
+                # RAR is handled by system 'tar' (works on Windows 10/11)
+                result = subprocess.run(["tar", "-xf", path, "-C", extract_dir], capture_output=True, text=True)
+                if result.returncode != 0:
+                    # If system tar fails (common on Linux/Deployed), suggest ZIP
+                    return "RAR extraction is not supported on this server/system. Please upload a .zip or .xlsx file instead.", 400
                 
             # Find the first .xlsx file
             xlsx_files = list(Path(extract_dir).rglob("*.xlsx"))
@@ -64,10 +68,6 @@ def process():
             
             path = str(xlsx_files[0]) # Use the first found Excel file
         except Exception as e:
-            # If RAR fails on server, provide a helpful message
-            error_msg = str(e)
-            if filename.lower().endswith(".rar") and "unrar" in error_msg.lower():
-                return "RAR extraction is not supported on this server. Please upload a .zip or .xlsx file instead.", 400
             return f"Error extracting archive: {e}", 400
 
     # Build summary (بنفس المنطق)
