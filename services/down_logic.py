@@ -93,12 +93,16 @@ def build_down_dict(filepath):
                 if cat == "O&M":
                     down_info[site_code]["techs"].add(tech)
                     down_info[site_code]["om_only"].add(tech)
-                    down_info[site_code]["partial_only"].discard(tech)
+                    # Removing from cells_only if it was there to keep techs clean for display
                     down_info[site_code]["cells_only"].discard(tech)
                 else:
-                    if tech not in down_info[site_code]["techs"]:
-                        down_info[site_code]["partial_only"].add(tech)
+                    # Only add to cells_only if not already down via O&M
+                    # But we'll handle the 'Total Down' rule in summary.py logic
+                    if tech not in down_info[site_code]["om_only"]:
                         down_info[site_code]["cells_only"].add(tech)
+                    else:
+                        # Even if it's O&M down, we note that it has cells down for Micro logic
+                        down_info[site_code]["partial_only"].add(tech) # Using partial_only as a flag for O&M + Cells
 
                 # ===== Build descriptions per tech مع HW rename =====
                 desc_dict = build_down_description_per_tech(row, cat)

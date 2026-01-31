@@ -175,6 +175,12 @@
         font-weight: bold !important;
         font-size: 12px; /* Slightly larger for emphasis */
       }
+      .long-duration-row td {
+        background-color: #fcebeb !important; /* Slightly more reddish */
+      }
+      body.dark-mode .long-duration-row td {
+        background-color: #4a3535 !important;
+      }
     </style>
   </head>
 
@@ -324,7 +330,9 @@
             </thead>
             <tbody>
               {% for row in tables_down_env %}
-              <tr>
+              <tr
+                class="{% if row.get('_long_duration') %}long-duration-row{% endif %}"
+              >
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
                 <td
@@ -369,9 +377,9 @@
             <thead>
               <tr>
                 {% for key in tables_env_only[0].keys() %} {% if not
-                key.startswith("_") %}
+                key.startswith("_") and key != "Comment" %}
                 <th
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
                   {{ key }}
                 </th>
@@ -380,23 +388,15 @@
             </thead>
             <tbody>
               {% for row in tables_env_only %}
-              <tr>
+              <tr
+                class="{% if row.get('_long_duration') %}long-duration-row{% endif %}"
+              >
                 {% for key,val in row.items() %} {% if not key.startswith("_")
-                %}
+                and key != "Comment" %}
                 <td
-                  class="{% if key=='Comment' %}comment{% endif %} {% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
+                  class="{% if key in ['Site Code','Site Name', 'Down Alarm', 'Down Alarm Description', 'ENV Alarms', 'ENV Alarm'] %}bold-text{% endif %}"
                 >
-                  {% if key=="Comment" %}
-                  <select
-                    class="form-select form-select-sm comment-persist"
-                    data-sitecode="{{ row['Site Code'] }}"
-                    title="{{ val|join(', ') }}"
-                  >
-                    {% for option in val %}
-                    <option>{{ option|e }}</option>
-                    {% endfor %}
-                  </select>
-                  {% else %} {{ val|safe }} {% endif %}
+                  {{ val|safe }}
                 </td>
                 {% endif %} {% endfor %}
               </tr>
@@ -439,7 +439,9 @@
             </thead>
             <tbody>
               {% for row in critical_env_table %}
-              <tr>
+              <tr
+                class="{% if row.get('_long_duration') %}long-duration-row{% endif %}"
+              >
                 {% for key,val in row.items() %} {% if not key.startswith("_")
                 %}
                 <td
@@ -501,7 +503,7 @@
             ordering: false,
             lengthChange: false,
             autoWidth: false,
-            columnDefs: [{ targets: [3, 4, 5, 6, 10], visible: false }],
+            columnDefs: [{ targets: [3, 4, 5, 6], visible: false }],
             dom: "Bfrtip",
             buttons: ["excel", "csv", "print"],
           });

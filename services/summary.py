@@ -37,7 +37,8 @@ def build_summary(filepath, selected_oz=None):
             "Comment": comments_list.copy(),
             "Duration": "",
             "_down_time": pd.Timestamp.max,
-            "_env_time": pd.Timestamp.min
+            "_env_time": pd.Timestamp.min,
+            "_long_duration": False
         }
 
         if site_code in down_info:
@@ -59,15 +60,19 @@ def build_summary(filepath, selected_oz=None):
                     hours = total_minutes // 60
                     minutes = total_minutes % 60
                     row["Duration"] = f"{hours:02d}:{minutes:02d}"
+                    if hours >= 2:
+                        row["_long_duration"] = True
 
-            site_type = master.get("Site Type","").upper()
+            site_type = str(master.get("Site Type","")).strip().upper()
 
             # ===== Down Type Logic شامل O&M + Cells =====
             om_count = len(om_only)
             partial_count = len([t for t in techs_down if t not in om_only])
 
             if site_type == "MICRO":
-                if om_count + partial_count >= 2 or (om_count >=1 and partial_count >=1):
+                # Condition: 2+ alarms total OR (at least 1 O&M and at least 1 Cell)
+                has_om_and_cells = len(om_only) >= 1 and (len(site_down.get("cells_only", [])) >= 1 or len(site_down.get("partial_only", [])) >= 1)
+                if om_count + partial_count >= 2 or has_om_and_cells:
                     row["Down Type"] = "Total"
                 elif om_count + partial_count == 1:
                     row["Down Type"] = "Partial"
@@ -121,11 +126,29 @@ def build_summary(filepath, selected_oz=None):
             env_alarms = [escape_but_allow_br(a) for a in site_env.get("alarms", [])]
             row["ENV Alarms"] = " | ".join(env_alarms)
 
-            # ===== ENV Times =====
+            # ===== ENV Times & Duration =====
             env_times = pd.to_datetime(site_env.get("times", []), errors="coerce").dropna()
+            env_duration_str = ""
+            env_is_long = False
             if len(env_times) > 0:
-                row["ENV Alarm Time"] = env_times.max().strftime("%Y-%m-%d %H:%M:%S")
-                row["_env_time"] = env_times.max()
+                max_env_time = env_times.max()
+                min_env_time = env_times.min()
+                row["ENV Alarm Time"] = max_env_time.strftime("%Y-%m-%d %H:%M:%S")
+                row["_env_time"] = max_env_time
+                
+                # Calculate Duration based on ENV alarm
+                duration_env = datetime.now() - min_env_time
+                total_minutes = int(duration_env.total_seconds() // 60)
+                hours = total_minutes // 60
+                minutes = total_minutes % 60
+                env_duration_str = f"{hours:02d}:{minutes:02d}"
+                if hours >= 2:
+                    env_is_long = True
+                
+                # Update main row duration only if empty (e.g. for sites with ONLY ENV alarms)
+                if not row["Duration"]:
+                    row["Duration"] = env_duration_str
+                    row["_long_duration"] = env_is_long
 
             # ===== Critical ENV =====
             critical_env = []
@@ -141,7 +164,9 @@ def build_summary(filepath, selected_oz=None):
                     "SC Office": row["SC Office"],
                     "ENV Alarm": " | ".join(critical_env),
                     "ENV Alarm Time": row["ENV Alarm Time"],
-                    "_env_time": row["_env_time"] # Hidden for sorting
+                    "Duration": env_duration_str,
+                    "_env_time": row["_env_time"],
+                    "_long_duration": env_is_long
                 })
 
         rows.append(row)
