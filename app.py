@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, send_file
 import os
 import zipfile
-import subprocess
 import shutil
 from pathlib import Path
 from services.summary import build_summary
@@ -42,33 +41,25 @@ def process():
     path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(path)
 
-    # Handle ZIP/RAR files
-    if filename.lower().endswith((".zip", ".rar")):
+    # Handle ZIP files
+    if filename.lower().endswith(".zip"):
         try:
             extract_dir = os.path.join(UPLOAD_FOLDER, "extracted_" + Path(filename).stem)
             if os.path.exists(extract_dir):
                 shutil.rmtree(extract_dir)
             os.makedirs(extract_dir, exist_ok=True)
             
-            if filename.lower().endswith(".zip"):
-                # ZIP is handled by pure python zipfile (safe everywhere)
-                with zipfile.ZipFile(path, 'r') as zip_ref:
-                    zip_ref.extractall(extract_dir)
-            else: 
-                # RAR is handled by system 'tar' (works on Windows 10/11)
-                result = subprocess.run(["tar", "-xf", path, "-C", extract_dir], capture_output=True, text=True)
-                if result.returncode != 0:
-                    # If system tar fails (common on Linux/Deployed), suggest ZIP
-                    return "RAR extraction is not supported on this server/system. Please upload a .zip or .xlsx file instead.", 400
+            with zipfile.ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
                 
             # Find the first .xlsx file
             xlsx_files = list(Path(extract_dir).rglob("*.xlsx"))
             if not xlsx_files:
-                return "No Excel file (.xlsx) found in the archive", 400
+                return "No Excel file (.xlsx) found in the ZIP archive", 400
             
             path = str(xlsx_files[0]) # Use the first found Excel file
         except Exception as e:
-            return f"Error extracting archive: {e}", 400
+            return f"Error extracting ZIP: {e}", 400
 
     # Build summary (بنفس المنطق)
     df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \
