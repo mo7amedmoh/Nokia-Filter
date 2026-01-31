@@ -181,6 +181,18 @@
       body.dark-mode .long-duration-row td {
         background-color: #4a3535 !important;
       }
+      .cleared-row td {
+        background-color: #dbf5db !important; /* Lite Green */
+      }
+      body.dark-mode .cleared-row td {
+        background-color: #1b3320 !important;
+      }
+      .in-progress-row td {
+        background-color: #f7f7e6 !important; /* Yellowish Grey */
+      }
+      body.dark-mode .in-progress-row td {
+        background-color: #3b3b28 !important;
+      }
     </style>
   </head>
 
@@ -552,6 +564,26 @@
         }
 
         // --- Persistent Comments Logic ---
+        function updateRowHighlight($el) {
+          const val = $el.val();
+          const tr = $el.closest("tr");
+          tr.removeClass("cleared-row in-progress-row");
+
+          if (val === "Cleared" || val === "Clear") {
+            tr.addClass("cleared-row");
+          } else if (
+            [
+              "About to Reach",
+              "Access Requested",
+              "Calling Soc team",
+              "waiting Access",
+              "Working in site",
+            ].includes(val)
+          ) {
+            tr.addClass("in-progress-row");
+          }
+        }
+
         function loadSavedComments() {
           $(".comment-persist").each(function () {
             const siteCode = $(this).data("sitecode");
@@ -559,6 +591,7 @@
             if (savedValue) {
               $(this).val(savedValue);
             }
+            updateRowHighlight($(this));
           });
         }
 
@@ -568,6 +601,7 @@
           if (siteCode) {
             localStorage.setItem("comment_" + siteCode, val);
           }
+          updateRowHighlight($(this));
         });
 
         // Initialize saved comments
