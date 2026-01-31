@@ -57,11 +57,9 @@ alarm_rename_dict = dict(zip(alarm_rename_df["Alarm Text"].apply(clean_text),
 # ===== Load ENV Criticality =====
 alarm_rename_df["Alarm crtiticality"] = alarm_rename_df["Alarm crtiticality"].astype(str).str.upper().str.strip()
 
-critical_env_alarms = set(
-    alarm_rename_df[
-        alarm_rename_df["Alarm crtiticality"] == "CRITICAL"
-    ]["Alarm Text"].apply(clean_text)
-)
+critical_rows = alarm_rename_df[alarm_rename_df["Alarm crtiticality"] == "CRITICAL"]
+critical_env_alarms = set(critical_rows["Alarm Text"].apply(clean_text)) | \
+                      set(critical_rows["Renamed Alarm"].astype(str).str.upper().str.strip())
 
 # ===== Load HW-Rename (for Down alarms) =====
 hw_rename_df = pd.read_excel(os.path.join(BASE_DIR, "../HW-Rename.xlsx"), engine="openpyxl")
