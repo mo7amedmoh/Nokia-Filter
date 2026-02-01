@@ -875,7 +875,7 @@
           });
         });
 
-        // Unified Filter Logic (Global Search Extension)
+        // Unified Filter Logic (Robust Dynamic Column Detection)
         $.fn.dataTable.ext.search.push(function (settings, data) {
           // 1. SC Office Filter
           var selectedOffices = $("#officeFilter").val();
@@ -886,23 +886,41 @@
           }
 
           // 2. Date Range Filter
-          var timeColIdx = 5; // Default for DownTable (Alarm Time)
-          if (settings.nTable.id === "envTable") timeColIdx = 8; // ENV Alarm Time
-          if (settings.nTable.id === "criticalEnvTable") timeColIdx = 4; // ENV Alarm Time
-
           var startInput = $("#startDateFilter").val();
           var endInput = $("#endDateFilter").val();
+
+          // If no date filters are set, we only care about officePass
+          if (!startInput && !endInput) return officePass;
+
+          // Find time column index dynamically for this specific table (cached in settings)
+          if (typeof settings.timeColIdx === "undefined") {
+            var idx = -1;
+            // Iterate through actual column definitions to find matching title
+            settings.aoColumns.forEach(function (col, i) {
+              var title = (col.sTitle || "").trim();
+              if (title === "Alarm Time" || title === "ENV Alarm Time") {
+                idx = i;
+              }
+            });
+            settings.timeColIdx = idx;
+          }
+
+          var timeColIdx = settings.timeColIdx;
+          if (timeColIdx === -1) return officePass; // Table has no time column
+
           var timeInRowRaw = (data[timeColIdx] || "").trim();
           var datePass = true;
 
-          if (timeInRowRaw && (startInput || endInput)) {
-            // Regex to pick the date part YYYY-MM-DD from the cell contents
+          if (timeInRowRaw) {
             var dateMatch = timeInRowRaw.match(/(\d{4}-\d{2}-\d{2})/);
             if (dateMatch) {
               var dateInRow = dateMatch[1];
               if (startInput && dateInRow < startInput) datePass = false;
               if (endInput && dateInRow > endInput) datePass = false;
             }
+          } else {
+            // Sites with no time data are hidden if a date filter is active
+            datePass = false;
           }
 
           return officePass && datePass;
