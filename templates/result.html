@@ -217,6 +217,42 @@
       body.dark-mode .in-progress-row td {
         background-color: #3b3b28 !important;
       }
+      .filter-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+      }
+      body.dark-mode .filter-card {
+        background: #1e1e1e;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      .filter-label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #495057;
+        margin-bottom: 6px;
+      }
+      body.dark-mode .filter-label {
+        color: #adb5bd;
+      }
+      .filter-input {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 8px 12px;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+      body.dark-mode .filter-input {
+        background-color: #2b2b2b;
+        border-color: #444;
+        color: #eaeaea;
+      }
+      .filter-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+      }
     </style>
   </head>
 
@@ -290,53 +326,56 @@
       </div>
 
       <!-- Slicers / Filters -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <h5 class="card-title">
-            <i class="fas fa-filter"></i> Filters (Slicers)
-          </h5>
-          <div class="row align-items-end">
-            <div class="col-md-3">
-              <label for="officeFilter" class="form-label">SC Office</label>
+      <div class="card filter-card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center mb-3">
+            <i class="fas fa-filter text-primary me-2"></i>
+            <h6 class="mb-0 fw-bold">Live Filtering Console</h6>
+          </div>
+          <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+              <label for="officeFilter" class="filter-label">SC Office</label>
               <select
                 id="officeFilter"
-                class="form-select form-select-sm select-auto-filter"
+                class="form-select filter-input"
                 multiple
               >
                 {% for office in dashboard.keys() %}
                 <option value="{{ office }}">{{ office }}</option>
                 {% endfor %}
               </select>
+              <div class="mt-1">
+                <small class="text-muted" style="font-size: 10px"
+                  >Ctrl/Cmd + Click for multiple</small
+                >
+              </div>
             </div>
-            <div class="col-md-3">
-              <label for="startDateFilter" class="form-label">Start Date</label>
+            <div class="col-lg-3 col-md-6">
+              <label for="startDateFilter" class="filter-label"
+                >Start Date</label
+              >
               <input
                 type="date"
                 id="startDateFilter"
-                class="form-control form-control-sm"
+                class="form-control filter-input"
               />
             </div>
-            <div class="col-md-3">
-              <label for="endDateFilter" class="form-label">End Date</label>
+            <div class="col-lg-3 col-md-6">
+              <label for="endDateFilter" class="filter-label">End Date</label>
               <input
                 type="date"
                 id="endDateFilter"
-                class="form-control form-control-sm"
+                class="form-control filter-input"
               />
             </div>
-            <div class="col-md-3">
-              <div class="d-grid gap-2">
-                <button id="clearFilters" class="btn btn-sm btn-outline-danger">
-                  <i class="fas fa-times"></i> Clear Filters
-                </button>
-              </div>
+            <div class="col-lg-3 col-md-6 d-flex align-items-end">
+              <button
+                id="clearFilters"
+                class="btn btn-outline-danger w-100 py-2"
+              >
+                <i class="fas fa-sync-alt me-1"></i> Reset All Filters
+              </button>
             </div>
-          </div>
-          <div class="mt-2">
-            <small class="text-muted"
-              >Hold Ctrl/Cmd to select multiple offices. Dates will filter by
-              site's primary alarm time.</small
-            >
           </div>
         </div>
       </div>
@@ -838,30 +877,31 @@
 
         // Unified Filter Logic (Global Search Extension)
         $.fn.dataTable.ext.search.push(function (settings, data) {
-          // 1. SC Office Filter (Column Index 2)
+          // 1. SC Office Filter
           var selectedOffices = $("#officeFilter").val();
-          var officeInRow = data[2] || "";
+          var officeInRow = (data[2] || "").trim();
           var officePass = true;
           if (selectedOffices && selectedOffices.length > 0) {
             officePass = selectedOffices.includes(officeInRow);
           }
 
           // 2. Date Range Filter
-          // Column index for time: DownTable (4), EnvTable (1), CriticalEnv (4)
           var timeColIdx = 4; // Default for DownTable & CriticalEnv
           if (settings.nTable.id === "envTable") timeColIdx = 1;
 
-          var startDate = $("#startDateFilter").val();
-          var endDate = $("#endDateFilter").val();
-          var timeInRowRaw = data[timeColIdx] || "";
+          var startInput = $("#startDateFilter").val();
+          var endInput = $("#endDateFilter").val();
+          var timeInRowRaw = (data[timeColIdx] || "").trim();
           var datePass = true;
 
-          if (timeInRowRaw && (startDate || endDate)) {
-            // Extract date part (YYYY-MM-DD) from typical format "YYYY-MM-DD HH:MM:SS"
-            var dateInRow = timeInRowRaw.split(" ")[0];
-
-            if (startDate && dateInRow < startDate) datePass = false;
-            if (endDate && dateInRow > endDate) datePass = false;
+          if (timeInRowRaw && (startInput || endInput)) {
+            // Regex to pick the date part YYYY-MM-DD from the cell contents
+            var dateMatch = timeInRowRaw.match(/(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) {
+              var dateInRow = dateMatch[1];
+              if (startInput && dateInRow < startInput) datePass = false;
+              if (endInput && dateInRow > endInput) datePass = false;
+            }
           }
 
           return officePass && datePass;
