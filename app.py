@@ -58,13 +58,10 @@ def process():
                 return "No Excel file (.xlsx or .xlsm) found in the ZIP archive", 400
             
             path = str(xlsx_files[0]) 
-            print(f"Extracted excel file: {path}")
         except Exception as e:
             return f"Error extracting ZIP: {e}", 400
     elif not filename.lower().endswith((".xlsx", ".xlsm", ".xls")):
         return f"Unsupported file format: {filename}. Please upload .xlsx or .zip", 400
-
-    print(f"Processing file: {path} with OZ: {selected_oz}")
 
     # Build summary (بنفس المنطق)
     df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \

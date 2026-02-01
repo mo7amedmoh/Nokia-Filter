@@ -1,5 +1,5 @@
 import pandas as pd
-from services.loaders import clean_text, valid_sites, down_alarm_names, alarm_category_dict, hw_rename_dict, TECH_MAP, extract_site_code, filter_last_40_days
+from services.loaders import clean_text, valid_sites, down_alarm_names, alarm_category_dict, hw_rename_dict, TECH_MAP, extract_site_code
 
 def build_down_description_per_tech(row, alarm_category, current_tech):
     desc_per_tech = {}
@@ -72,7 +72,6 @@ def build_down_dict(filepath):
         try:
             df = pd.read_excel(filepath, sheet_name=sheet, engine="openpyxl")
             if df.empty: continue
-            df = filter_last_40_days(df)
             for _, row in df.iterrows():
                 alarm_text = clean_text(row.get("Alarm Text",""))
                 if not alarm_text or alarm_text not in down_alarm_names:

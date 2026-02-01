@@ -289,6 +289,58 @@
         </div>
       </div>
 
+      <!-- Slicers / Filters -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fas fa-filter"></i> Filters (Slicers)
+          </h5>
+          <div class="row align-items-end">
+            <div class="col-md-3">
+              <label for="officeFilter" class="form-label">SC Office</label>
+              <select
+                id="officeFilter"
+                class="form-select form-select-sm select-auto-filter"
+                multiple
+              >
+                {% for office in dashboard.keys() %}
+                <option value="{{ office }}">{{ office }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="startDateFilter" class="form-label">Start Date</label>
+              <input
+                type="date"
+                id="startDateFilter"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="endDateFilter" class="form-label">End Date</label>
+              <input
+                type="date"
+                id="endDateFilter"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col-md-3">
+              <div class="d-grid gap-2">
+                <button id="clearFilters" class="btn btn-sm btn-outline-danger">
+                  <i class="fas fa-times"></i> Clear Filters
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2">
+            <small class="text-muted"
+              >Hold Ctrl/Cmd to select multiple offices. Dates will filter by
+              site's primary alarm time.</small
+            >
+          </div>
+        </div>
+      </div>
+
       <!-- SC Offices -->
       <h5 class="mb-3">SC Offices Overview</h5>
       <div class="row g-3 mb-4">
@@ -784,12 +836,61 @@
           });
         });
 
+        // Unified Filter Logic (Global Search Extension)
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+          // 1. SC Office Filter (Column Index 2)
+          var selectedOffices = $("#officeFilter").val();
+          var officeInRow = data[2] || "";
+          var officePass = true;
+          if (selectedOffices && selectedOffices.length > 0) {
+            officePass = selectedOffices.includes(officeInRow);
+          }
+
+          // 2. Date Range Filter
+          // Column index for time: DownTable (4), EnvTable (1), CriticalEnv (4)
+          var timeColIdx = 4; // Default for DownTable & CriticalEnv
+          if (settings.nTable.id === "envTable") timeColIdx = 1;
+
+          var startDate = $("#startDateFilter").val();
+          var endDate = $("#endDateFilter").val();
+          var timeInRowRaw = data[timeColIdx] || "";
+          var datePass = true;
+
+          if (timeInRowRaw && (startDate || endDate)) {
+            // Extract date part (YYYY-MM-DD) from typical format "YYYY-MM-DD HH:MM:SS"
+            var dateInRow = timeInRowRaw.split(" ")[0];
+
+            if (startDate && dateInRow < startDate) datePass = false;
+            if (endDate && dateInRow > endDate) datePass = false;
+          }
+
+          return officePass && datePass;
+        });
+
+        // Event listeners for Filters
+        $("#officeFilter, #startDateFilter, #endDateFilter").on(
+          "change",
+          function () {
+            if (typeof downTable !== "undefined") downTable.draw();
+            if (typeof envTable !== "undefined") envTable.draw();
+            if (typeof criticalEnvTable !== "undefined")
+              criticalEnvTable.draw();
+          },
+        );
+
+        $("#clearFilters").click(function () {
+          $("#officeFilter").val([]).trigger("change");
+          $("#startDateFilter").val("");
+          $("#endDateFilter").val("").trigger("change");
+          alert("All filters cleared!");
+        });
+
         // CRITICAL ENV TABLE
         if ($("#criticalEnvTable").length) {
           var criticalEnvTable = $("#criticalEnvTable").DataTable({
             pageLength: 25,
-            ordering: true, // Enable ordering
-            order: [[4, "desc"]], // Default sort by 5th column (Time) newest first
+            ordering: true,
+            order: [[4, "desc"]],
             lengthChange: false,
             autoWidth: false,
             columnDefs: [{ targets: [1], maxWidth: 80 }],

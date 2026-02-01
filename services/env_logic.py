@@ -1,5 +1,5 @@
 import pandas as pd
-from services.loaders import clean_text, valid_sites, alarm_rename_dict, extract_site_code, filter_last_40_days
+from services.loaders import clean_text, valid_sites, alarm_rename_dict, extract_site_code
 
 def get_env_alarm_name(row):
     obj_class = clean_text(row.get("Object Class",""))
@@ -24,7 +24,6 @@ def build_env_dict(filepath):
         env_df = pd.read_excel(filepath, sheet_name="Environmental", engine="openpyxl")
         if env_df.empty:
             return env_info
-        env_df = filter_last_40_days(env_df)
         for _, row in env_df.iterrows():
             site_code = extract_site_code(row)
             if not site_code or site_code not in valid_sites:

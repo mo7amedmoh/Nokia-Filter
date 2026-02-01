@@ -88,15 +88,19 @@ import re
 SITE_CODE_REGEX = re.compile(r'(\d{4}(?:AL|DE|SI))')
 TECH_MAP = {"2G_Down":"2G","3G_Down":"3G","4G_Down":"4G","5G_Down":"5G"}
 
-# ===== Filter last 40 days =====
-def filter_last_40_days(df, time_col="Alarm Time"):
-    if time_col not in df.columns:
+# ===== Filter by Date Range =====
+def filter_by_date_range(df, start_date_str, end_date_str, time_col="Alarm Time"):
+    if time_col not in df.columns or not start_date_str or not end_date_str:
         return df
     df = df.copy()
     df[time_col] = pd.to_datetime(df[time_col], errors="coerce")
-    cairo_now = datetime.now(timezone(timedelta(hours=2))).replace(tzinfo=None)
-    cutoff_date = cairo_now - timedelta(days=40)
-    return df[(df[time_col].notna()) & (df[time_col] >= cutoff_date)]
+    
+    start_dt = pd.to_datetime(start_date_str)
+    # Set end_dt to the end of the day or just as is
+    end_dt = pd.to_datetime(end_date_str) + timedelta(days=1) - timedelta(seconds=1)
+    
+    mask = (df[time_col].notna()) & (df[time_col] >= start_dt) & (df[time_col] <= end_dt)
+    return df[mask]
 
 # ===== Extract Site Code =====
 def extract_site_code(row):
