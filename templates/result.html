@@ -324,7 +324,22 @@
           </div>
         </div>
       </div>
-
+      <!-- SC Offices -->
+      <h5 class="mb-3">SC Offices Overview</h5>
+      <div class="row g-3 mb-4">
+        {% for office, stats in dashboard.items() %}
+        <div class="col-xl-3 col-md-4 col-sm-6">
+          <div class="office-card">
+            <h6>{{ office }}</h6>
+            <div class="text-danger">🔴 Total: {{ stats['Total Down'] }}</div>
+            <div class="text-warning">
+              🟡 Partial: {{ stats['Partial Down'] }}
+            </div>
+            <div class="text-info">🌬 ENV: {{ stats['ENV'] }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
       <!-- Slicers / Filters -->
       <div class="card filter-card">
         <div class="card-body p-4">
@@ -378,23 +393,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- SC Offices -->
-      <h5 class="mb-3">SC Offices Overview</h5>
-      <div class="row g-3 mb-4">
-        {% for office, stats in dashboard.items() %}
-        <div class="col-xl-3 col-md-4 col-sm-6">
-          <div class="office-card">
-            <h6>{{ office }}</h6>
-            <div class="text-danger">🔴 Total: {{ stats['Total Down'] }}</div>
-            <div class="text-warning">
-              🟡 Partial: {{ stats['Partial Down'] }}
-            </div>
-            <div class="text-info">🌬 ENV: {{ stats['ENV'] }}</div>
-          </div>
-        </div>
-        {% endfor %}
       </div>
 
       <!-- Tabs -->
@@ -895,10 +893,15 @@
           // Find time column index dynamically for this specific table (cached in settings)
           if (typeof settings.timeColIdx === "undefined") {
             var idx = -1;
-            // Iterate through actual column definitions to find matching title
+            // For downTable prioritize "Alarm Time", for others use "ENV Alarm Time"
+            var targetTitle =
+              settings.nTable.id === "downTable"
+                ? "Alarm Time"
+                : "ENV Alarm Time";
+
             settings.aoColumns.forEach(function (col, i) {
               var title = (col.sTitle || "").trim();
-              if (title === "Alarm Time" || title === "ENV Alarm Time") {
+              if (title === targetTitle) {
                 idx = i;
               }
             });
