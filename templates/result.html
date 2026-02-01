@@ -886,8 +886,9 @@
           }
 
           // 2. Date Range Filter
-          var timeColIdx = 4; // Default for DownTable & CriticalEnv
-          if (settings.nTable.id === "envTable") timeColIdx = 1;
+          var timeColIdx = 5; // Default for DownTable (Alarm Time)
+          if (settings.nTable.id === "envTable") timeColIdx = 8; // ENV Alarm Time
+          if (settings.nTable.id === "criticalEnvTable") timeColIdx = 4; // ENV Alarm Time
 
           var startInput = $("#startDateFilter").val();
           var endInput = $("#endDateFilter").val();
