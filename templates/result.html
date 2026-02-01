@@ -268,12 +268,9 @@
           <button id="toggleDark" class="btn btn-outline-secondary me-2">
             <i id="themeIcon" class="fas fa-moon"></i>
           </button>
-          <a
-            href="/download?file={{ excel_path }}"
-            class="btn btn-success me-2"
-          >
+          <button id="downloadExcelWithComments" class="btn btn-success me-2">
             <i class="fas fa-file-excel"></i> Download Excel
-          </a>
+          </button>
           <button id="copyImage" class="btn btn-primary me-2">
             <i class="fas fa-camera"></i> Copy Table as Image
           </button>
@@ -292,7 +289,7 @@
           <div class="kpi-card kpi-danger">
             <div>
               <div class="kpi-title">Total Down Sites</div>
-              <div class="kpi-value">
+              <div class="kpi-value" id="kpi-total-down">
                 {{ dashboard_summary.get('Total Down Sites',0) }}
               </div>
             </div>
@@ -303,7 +300,7 @@
           <div class="kpi-card kpi-warning">
             <div>
               <div class="kpi-title">Partial Down Sites</div>
-              <div class="kpi-value">
+              <div class="kpi-value" id="kpi-total-partial">
                 {{ dashboard_summary.get('Total Partial Sites',0) }}
               </div>
             </div>
@@ -316,7 +313,7 @@
           <div class="kpi-card kpi-info">
             <div>
               <div class="kpi-title">Total ENV Alarms</div>
-              <div class="kpi-value">
+              <div class="kpi-value" id="kpi-total-env">
                 {{ dashboard_summary.get('Total Env Alarms',0) }}
               </div>
             </div>
@@ -326,7 +323,7 @@
       </div>
       <!-- SC Offices -->
       <h5 class="mb-3">SC Offices Overview</h5>
-      <div class="row g-3 mb-4">
+      <div class="row g-3 mb-4" id="office-overview-container">
         {% for office, stats in dashboard.items() %}
         <div class="col-xl-3 col-md-4 col-sm-6">
           <div class="office-card">
@@ -726,6 +723,54 @@
         // Initialize saved comments
         loadSavedComments();
 
+        // Excel Download with Comments Logic
+        $("#downloadExcelWithComments").click(function () {
+          const btn = $(this);
+          const originalHtml = btn.html();
+
+          // Collect all comments from localStorage
+          const localComments = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("comment_")) {
+              const siteCode = key.replace("comment_", "");
+              localComments[siteCode] = localStorage.getItem(key);
+            }
+          }
+
+          btn.html('<i class="fas fa-spinner fa-spin"></i> Preparing...');
+          btn.prop("disabled", true);
+
+          fetch("/export_excel", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              comments: localComments,
+              start_date: $("#startDateFilter").val(),
+              end_date: $("#endDateFilter").val(),
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              btn.html(originalHtml);
+              btn.prop("disabled", false);
+
+              if (data.download_url) {
+                window.location.href = data.download_url;
+              } else if (data.error) {
+                alert("Error: " + data.error);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              btn.html(originalHtml);
+              btn.prop("disabled", false);
+              alert("Failed to export Excel. Please try again.");
+            });
+        });
+
         // Re-apply comments when tables are redrawn (pagination, sorting, filtering)
         if (typeof downTable !== "undefined")
           downTable.on("draw", loadSavedComments);
@@ -929,6 +974,9 @@
           return officePass && datePass;
         });
 
+        // Initial call
+        updateDashboardStats();
+
         // Event listeners for Filters
         $("#officeFilter, #startDateFilter, #endDateFilter").on(
           "change",
@@ -939,6 +987,92 @@
               criticalEnvTable.draw();
           },
         );
+
+        // Update Dashboard on Draw
+        if (typeof downTable !== "undefined")
+          downTable.on("draw", updateDashboardStats);
+        if (typeof envTable !== "undefined")
+          envTable.on("draw", updateDashboardStats);
+
+        function updateDashboardStats() {
+          let totalDown = 0;
+          let totalPartial = 0;
+          let totalEnv = 0;
+          let officeStats = {};
+
+          // Process Down Table
+          if (typeof downTable !== "undefined") {
+            const data = downTable.rows({ filter: "applied" }).data();
+            data.each(function (row) {
+              const type = row[6] || ""; // Down Type column
+              const office = row[2] || "Other";
+              const envText = row[7] || ""; // ENV Alarms column
+
+              if (!officeStats[office])
+                officeStats[office] = { down: 0, partial: 0, env: 0 };
+
+              if (type === "Total") {
+                totalDown++;
+                officeStats[office].down++;
+              } else if (type === "Partial") {
+                totalPartial++;
+                officeStats[office].partial++;
+              }
+
+              if (envText) {
+                const count = envText.split(" | ").length;
+                totalEnv += count;
+                officeStats[office].env += count;
+              }
+            });
+          }
+
+          // Process ENV Only Table
+          if (typeof envTable !== "undefined") {
+            const data = envTable.rows({ filter: "applied" }).data();
+            data.each(function (row) {
+              const office = row[2] || "Other";
+              const envText = row[3] || ""; // ENV Alarms column in envTable is index 3 or 7?
+              // Wait, let's check actual indices for envTable.
+              // Based on template it has all cols, so ENV Alarms is index 7.
+
+              const actualEnvText = row[7] || "";
+
+              if (!officeStats[office])
+                officeStats[office] = { down: 0, partial: 0, env: 0 };
+
+              if (actualEnvText) {
+                const count = actualEnvText.split(" | ").length;
+                totalEnv += count;
+                officeStats[office].env += count;
+              }
+            });
+          }
+
+          // Update KPI Labels
+          $("#kpi-total-down").text(totalDown);
+          $("#kpi-total-partial").text(totalPartial);
+          $("#kpi-total-env").text(totalEnv);
+
+          // Update Office Cards
+          const container = $("#office-overview-container");
+          container.empty();
+          Object.keys(officeStats)
+            .sort()
+            .forEach((office) => {
+              const s = officeStats[office];
+              const cardHtml = `
+              <div class="col-xl-3 col-md-4 col-sm-6">
+                <div class="office-card">
+                  <h6>${office}</h6>
+                  <div class="text-danger">🔴 Total: ${s.down}</div>
+                  <div class="text-warning">🟡 Partial: ${s.partial}</div>
+                  <div class="text-info">🌬 ENV: ${s.env}</div>
+                </div>
+              </div>`;
+              container.append(cardHtml);
+            });
+        }
 
         $("#clearFilters").click(function () {
           $("#officeFilter").val([]).trigger("change");

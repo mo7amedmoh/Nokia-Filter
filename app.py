@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, session, jsonify
 import os
 import zipfile
 import shutil
+import json
 from pathlib import Path
 from services.summary import build_summary
 import services.loaders as loaders
 
 app = Flask(__name__)
+app.secret_key = "super-secret-key-for-alarms-filter"
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -63,6 +65,10 @@ def process():
     elif not filename.lower().endswith((".xlsx", ".xlsm", ".xls")):
         return f"Unsupported file format: {filename}. Please upload .xlsx or .zip", 400
 
+    # Save to session for export
+    session["last_processed_path"] = path
+    session["last_selected_oz"] = selected_oz
+
     # Build summary (بنفس المنطق)
     df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \
     tech_labels, tech_counts, down_type_counts, env_labels, env_values, excel_path = \
@@ -86,12 +92,38 @@ def process():
 # =========================
 # Download
 # =========================
+# =========================
+# Download / Export with Comments
+# =========================
+@app.route("/export_excel", methods=["POST"])
+def export_excel():
+    try:
+        data = request.get_json()
+        user_comments = data.get("comments", {})
+        start_date = data.get("start_date")
+        end_date = data.get("end_date")
+        
+        path = session.get("last_processed_path")
+        selected_oz = session.get("last_selected_oz")
+        
+        if not path or not os.path.exists(path):
+            return jsonify({"error": "No session data found. Please upload file again."}), 400
+            
+        # Re-build summary with comments and dates
+        df, dashboard, dashboard_summary, tables_down_env, critical_env_table, tables_env_only, \
+        tech_labels, tech_counts, down_type_counts, env_labels, env_values, excel_path = \
+            build_summary(path, selected_oz, user_comments=user_comments, start_date=start_date, end_date=end_date)
+            
+        return jsonify({"download_url": f"/download?file={excel_path}"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/download")
 def download():
     file_path = request.args.get("file")
     if not file_path or not os.path.exists(file_path):
         return "File not found", 404
-    return send_file(file_path, as_attachment=True)
+    return send_file(file_path, as_attachment=True, download_name="Network_Alarms_Summary.xlsx")
 
 # =========================
 # Run
