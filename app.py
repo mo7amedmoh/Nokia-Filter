@@ -6,6 +6,11 @@ import json
 from pathlib import Path
 from services.summary import build_summary
 import services.loaders as loaders
+import psutil, os
+
+process = psutil.Process(os.getpid())
+print(process.memory_info().rss / 1024 / 1024, "MB")
+
 
 app = Flask(__name__)
 app.secret_key = "super-secret-key-for-alarms-filter"
