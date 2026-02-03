@@ -8,8 +8,7 @@ from services.summary import build_summary
 import services.loaders as loaders
 import psutil, os
 
-process = psutil.Process(os.getpid())
-print(process.memory_info().rss / 1024 / 1024, "MB")
+
 
 
 app = Flask(__name__)
