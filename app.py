@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from services.summary import build_summary
 import services.loaders as loaders
-import psutil, os
+import os
 
 
 

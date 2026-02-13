@@ -153,7 +153,7 @@ def build_summary(filepath, selected_oz=None, user_comments=None, start_date=Non
             if critical_alarms:
                 critical_env_list.append({
                     "Site Code": site_code,
-                    "Site Name": str(master.get("Site Name", site_code)),
+                    "Site Name": site_name_html,
                     "SC Office": row["SC Office"],
                     "ENV Alarm": " | ".join(critical_alarms),
                     "ENV Alarm Time": row["ENV Alarm Time"],
@@ -175,8 +175,8 @@ def build_summary(filepath, selected_oz=None, user_comments=None, start_date=Non
     dashboard = {}; dashboard_summary = {}
     if not df.empty and "SC Office" in df.columns:
         for office, group in df.groupby("SC Office"):
-            dashboard[office] = {"Total Down": (group["Down Type"]=="Total").sum(), "Partial Down": (group["Down Type"]=="Partial").sum(), "ENV": group["ENV Alarms"].apply(lambda x: len(str(x).split("<br>")) if x else 0).sum()}
-        dashboard_summary = {"Total Down Sites": (df["Down Type"]=="Total").sum(), "Total Partial Sites": (df["Down Type"]=="Partial").sum(), "Total Env Alarms": df["ENV Alarms"].apply(lambda x: len(str(x).split("<br>")) if x else 0).sum()}
+            dashboard[office] = {"Total Down": (group["Down Type"]=="Total").sum(), "Partial Down": (group["Down Type"]=="Partial").sum(), "ENV": group["ENV Alarms"].apply(lambda x: len(str(x).split(" | ")) if x else 0).sum()}
+        dashboard_summary = {"Total Down Sites": (df["Down Type"]=="Total").sum(), "Total Partial Sites": (df["Down Type"]=="Partial").sum(), "Total Env Alarms": df["ENV Alarms"].apply(lambda x: len(str(x).split(" | ")) if x else 0).sum()}
 
     # Web Data
     tables_down_env_web = df[df["Down Alarm"]!=""].sort_values(by="_down_time", ascending=True).to_dict("records")

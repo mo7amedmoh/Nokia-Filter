@@ -91,6 +91,22 @@
         padding: 14px;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
         border-left: 5px solid #0d6efd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .office-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        background-color: #f8f9fa;
+      }
+      .office-card.selected {
+        border-left-color: #198754;
+        background-color: #e8f5e9;
+        box-shadow: 0 0 10px rgba(25, 135, 84, 0.2);
+      }
+      body.dark-mode .office-card.selected {
+        background-color: #1b3320;
+        border-left-color: #2fb344;
       }
 
       table {
@@ -1054,14 +1070,16 @@
 
           // Update Office Cards
           const container = $("#office-overview-container");
+          const selectedOffices = $("#officeFilter").val() || [];
           container.empty();
           Object.keys(officeStats)
             .sort()
             .forEach((office) => {
               const s = officeStats[office];
+              const isSelected = selectedOffices.includes(office);
               const cardHtml = `
               <div class="col-xl-3 col-md-4 col-sm-6">
-                <div class="office-card">
+                <div class="office-card ${isSelected ? "selected" : ""}" data-office="${office}">
                   <h6>${office}</h6>
                   <div class="text-danger">🔴 Total: ${s.down}</div>
                   <div class="text-warning">🟡 Partial: ${s.partial}</div>
@@ -1071,6 +1089,31 @@
               container.append(cardHtml);
             });
         }
+
+        // Office Card Click Logic
+        $(document).on("click", ".office-card", function () {
+          const officeName = $(this).data("office");
+          const filter = $("#officeFilter");
+          let currentValues = filter.val() || [];
+
+          if (currentValues.length === 1 && currentValues[0] === officeName) {
+            // Already filtered by only this office - clear it
+            currentValues = [];
+          } else {
+            // Filter by this office specifically
+            currentValues = [officeName];
+          }
+
+          filter.val(currentValues).trigger("change");
+
+          // Scroll to tables
+          $("html, body").animate(
+            {
+              scrollTop: $("#officeFilter").offset().top - 20,
+            },
+            500,
+          );
+        });
 
         $("#clearFilters").click(function () {
           $("#officeFilter").val([]).trigger("change");
